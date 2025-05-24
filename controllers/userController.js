@@ -1,15 +1,96 @@
+import validator from "validator";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import UserModel from "../models/userModel.js";
+
+//generator jwt tokens
+const createToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
 //Route for User login
 
-const loginUser = async (rec, res) => {};
+export const loginUser = async (req, res) => {};
 
 //Rout for User registration
 
-const registUser = async (rec, res) => {
-  res.json({ mesage: "API register working" });
+export const registUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    //checking if fields not empty
+    if (!name.trim() || !email.trim().toLowerCase() || !password.trim()) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
+
+    //checking if user exist
+    const existUser = await UserModel.findOne({ email });
+    if (existUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists" });
+    }
+
+    //validation email format
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email",
+      });
+    }
+
+    //checking if password is strong
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a strong password",
+      });
+    }
+
+    const hasUpper = /[A-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecial = /[!@#$%^&*]/.test(password);
+
+    if (!hasUpper || !hasNumber || !hasSpecial) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password must contain at least one uppercase letter, one number, and one special character",
+      });
+    }
+
+    //hashing user password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    //add new user
+    const newUser = new UserModel({
+      name,
+      email,
+      password: hashedPassword,
+    });
+
+    const savedUser = await newUser.save();
+
+    let token = createToken(savedUser._id);
+
+    return res.status(201).json({
+      success: true,
+      message: "Registration successful",
+      data: {
+        user: savedUser,
+        token,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
 // Rout for admin login
 
-const adminLogin = async (rec, res) => {};
-
-export { loginUser, registUser, adminLogin };
+export const adminLogin = async (req, res) => {};
