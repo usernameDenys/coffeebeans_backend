@@ -3,6 +3,7 @@ import cors from "cors";
 import "dotenv/config";
 import connectDB from "./config/mongodb.js";
 import connectCloudinary from "./config/cloudinary.js";
+import userRouter from "./routes/userRout.js";
 
 //app config
 
@@ -16,6 +17,8 @@ app.use(express.json()); //request in json
 app.use(cors()); //allows all domains to access API
 
 // API Endpoints
+
+app.use("/api/user", userRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello World");
