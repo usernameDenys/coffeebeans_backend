@@ -25,10 +25,10 @@ export const addProduct = async (req, res) => {
       (image) => image !== undefined
     );
 
-    // Check if images are not available then it`ll throw an error
-    if (images.length === 0) {
-      throw new Error("Please upload at least one image");
-    }
+    // If images are not available then it`ll throw an error
+    // if (images.length === 0) {
+    //   throw new Error("Please upload at least one image");
+    // }
 
     // Upload all images to Cloudinary and collect their URLs
     let imageUrl = await Promise.all(
@@ -74,6 +74,26 @@ export const addProduct = async (req, res) => {
 //function for removing product
 export const removeProduct = async (req, res) => {
   try {
+    const { id } = req.body;
+
+    // Find product by ID
+    const product = await ProductModel.findById(id);
+
+    // If not found
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    // Delete the product
+    await product.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "Product removed successfully",
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -83,7 +103,42 @@ export const removeProduct = async (req, res) => {
 };
 
 //function for list product
-export const getListProducts = async (req, res) => {};
+export const getListProducts = async (req, res) => {
+  try {
+    const products = await ProductModel.find();
+    res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 //function for single product info
-export const getSingleProduct = async (req, res) => {};
+export const getSingleProduct = async (req, res) => {
+  try {
+    const { productId } = req.body;
+    const product = await ProductModel.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      product,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
