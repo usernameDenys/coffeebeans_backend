@@ -127,3 +127,35 @@ export const registUser = async (req, res) => {
     });
   }
 };
+
+// Route for admin login
+export const adminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (
+      email === process.env.ADMIN_EMAIL &&
+      password === process.env.ADMIN_PASSWORD
+    ) {
+      const token = jwt.sign({ role: "admin", email }, process.env.JWT_SECRET, {
+        expiresIn: "1d",
+      });
+      return res.status(200).json({
+        success: true,
+        message: "Admin signed in successfully",
+        data: {
+          token,
+        },
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
