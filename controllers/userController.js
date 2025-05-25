@@ -127,7 +127,3 @@ export const registUser = async (req, res) => {
     });
   }
 };
-
-// Rout for admin login
-
-export const adminLogin = async (req, res) => {};
