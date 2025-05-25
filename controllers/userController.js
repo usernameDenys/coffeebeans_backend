@@ -3,16 +3,53 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import UserModel from "../models/userModel.js";
 
-//generator jwt tokens
+//generator jwt tokens, date limit 7 days
 const createToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
+
 //Route for User login
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await UserModel.findOne({ email });
 
-export const loginUser = async (req, res) => {};
+    //check if user exist
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User doesn't exist" });
+    }
 
-//Rout for User registration
+    // check if the password is correct
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
+    if (!isPasswordValid) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid email or password" });
+    }
+
+    let token = createToken(user._id);
+    const { password: _, ...userData } = user._doc;
+
+    res.status(200).json({
+      success: true,
+      message: "User signed in successfully",
+      data: {
+        token,
+        user: userData,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//Rout for User registration(sign-up)
 export const registUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
