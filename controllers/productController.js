@@ -26,9 +26,9 @@ export const addProduct = async (req, res) => {
     );
 
     // If images are not available then it`ll throw an error
-    // if (images.length === 0) {
-    //   throw new Error("Please upload at least one image");
-    // }
+    if (images.length === 0) {
+      throw new Error("Please upload at least one image");
+    }
 
     // Upload all images to Cloudinary and collect their URLs
     let imageUrl = await Promise.all(
