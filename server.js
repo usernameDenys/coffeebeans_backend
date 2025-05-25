@@ -4,9 +4,9 @@ import "dotenv/config";
 import connectDB from "./config/mongodb.js";
 import connectCloudinary from "./config/cloudinary.js";
 import userRouter from "./routes/userRout.js";
+import productRouter from "./routes/productRout.js";
 
 //app config
-
 const app = express();
 const port = process.env.PORT || 4000;
 connectDB();
@@ -17,8 +17,8 @@ app.use(express.json()); //request in json
 app.use(cors()); //allows all domains to access API
 
 // API Endpoints
-
 app.use("/api/user", userRouter);
+app.use("/api/product", productRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello World");
