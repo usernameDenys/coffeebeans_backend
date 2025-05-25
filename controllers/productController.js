@@ -1,3 +1,6 @@
+import { v2 as cloudinary } from "cloudinary";
+import ProductModel from "../models/productModel.js";
+
 //function for add product
 export const addProduct = async (req, res) => {
   try {
@@ -17,19 +20,48 @@ export const addProduct = async (req, res) => {
     const image3 = req.files.image3 && req.files.image3[0];
     const image4 = req.files.image4 && req.files.image4[0];
 
-    console.log(
+    // Filter out undefined images
+    const images = [image1, image2, image3, image4].filter(
+      (image) => image !== undefined
+    );
+
+    // Check if images are not available then it`ll throw an error
+    if (images.length === 0) {
+      throw new Error("Please upload at least one image");
+    }
+
+    // Upload all images to Cloudinary and collect their URLs
+    let imageUrl = await Promise.all(
+      images.map(async (image) => {
+        // Upload each image to Cloudinary
+        const result = await cloudinary.uploader.upload(image.path, {
+          resource_type: "image", // Specify the file type
+        });
+        // Return the secure URL of the uploaded image
+        return result.secure_url;
+      })
+    );
+
+    //product object to database
+    const productData = {
       name,
       description,
-      price,
+      price: Number(price),
+      image: imageUrl,
       brew_type,
       roast_level,
-      sizes,
-      bestseller
-    );
+      sizes: JSON.parse(sizes),
+      bestseller: bestseller === "true" ? true : false,
+      date: Date.now(),
+    };
+
+    const product = new ProductModel(productData);
+    await product.save();
 
     res.status(201).json({
       success: true,
       message: "Product added successfully",
+      product,
     });
   } catch (error) {
     res.status(500).json({
