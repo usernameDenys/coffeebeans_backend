@@ -4,8 +4,8 @@ import jwt from "jsonwebtoken";
 import UserModel from "../models/userModel.js";
 
 //generator jwt tokens, date limit 7 days
-const createToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+const createToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
 //Route for User login
@@ -52,10 +52,15 @@ export const loginUser = async (req, res) => {
 //Rout for User registration(sign-up)
 export const registUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, lastName, email, password } = req.body;
 
     //checking if fields not empty
-    if (!name.trim() || !email.trim().toLowerCase() || !password.trim()) {
+    if (
+      !name.trim() ||
+      !lastName.trim() ||
+      !email.trim().toLowerCase() ||
+      !password.trim()
+    ) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
@@ -104,6 +109,7 @@ export const registUser = async (req, res) => {
     //add new user
     const newUser = new UserModel({
       name,
+      lastName,
       email,
       password: hashedPassword,
     });
