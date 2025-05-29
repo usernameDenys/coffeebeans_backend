@@ -4,8 +4,8 @@ import jwt from "jsonwebtoken";
 import UserModel from "../models/userModel.js";
 
 //generator jwt tokens, date limit 7 days
-const createToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+const createToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
 //Route for User login
