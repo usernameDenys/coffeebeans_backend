@@ -2,6 +2,7 @@ import validator from "validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import UserModel from "../models/userModel.js";
+import { sendRegistrationEmail } from "../middleware/emailService.js";
 
 //generator jwt tokens, date limit 7 days
 const createToken = (userId) => {
@@ -117,6 +118,8 @@ export const registUser = async (req, res) => {
     const savedUser = await newUser.save();
 
     let token = createToken(savedUser._id);
+
+    await sendRegistrationEmail(email, name);
 
     return res.status(201).json({
       success: true,
