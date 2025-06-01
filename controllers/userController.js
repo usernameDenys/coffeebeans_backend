@@ -168,3 +168,72 @@ export const adminLogin = async (req, res) => {
     });
   }
 };
+
+// Route to get current user info
+export const getUserProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await UserModel.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Route to update user profile info
+export const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { name, lastName } = req.body;
+
+    if (!name && !lastName) {
+      return res.status(400).json({
+        success: false,
+        message: "No data provided for update.",
+      });
+    }
+
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (lastName) updateFields.lastName = lastName;
+
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully.",
+      data: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
